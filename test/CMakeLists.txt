@@ -10,20 +10,25 @@ macro(generate_hex TARGET)
 	endif()
 endmacro()
 
-if(SERIES)
-	# generate RandomTest for every board
-	foreach(BOARD ${coco-devboards_COMPONENT_NAMES})
-		string(REGEX REPLACE ".*\\:" "RandomTest-" NAME ${BOARD})
+# iterate over boards and generate tests
+foreach(COMPONENT ${coco-devboards_COMPONENT_NAMES})
+	string(REGEX REPLACE ".*\\:" "" BOARD ${COMPONENT})
+	message("*** Boad: ${BOARD}")
+
+	# check if board specific header exists
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}/RandomTest.hpp)
+		set(NAME "RandomTest-${BOARD}")
 		add_executable(${NAME}
 			RandomTest.cpp
 		)
 		target_include_directories(${NAME}
 			PRIVATE
 				../
+				${BOARD}
 		)
 
 		# find link.ld of board
-		get_target_property(INCLUDES ${BOARD} INTERFACE_INCLUDE_DIRECTORIES)
+		get_target_property(INCLUDES ${COMPONENT} INTERFACE_INCLUDE_DIRECTORIES)
 		target_link_directories(${NAME}
 			PRIVATE	
 				${INCLUDES}
@@ -31,36 +36,31 @@ if(SERIES)
 
 		target_link_libraries(${NAME}
 			coco::coco
-			${BOARD}
+			${COMPONENT}
 			coco-loop::coco-loop
 			coco-usb::coco-usb
 			${PROJECT_NAME}
 		)
 
-		# windows specific libraries
-		if(WIN32)
-			target_link_libraries(${NAME} wsock32 ws2_32 winmm)
-		endif()
-
 		# generate hex file for flashing the target
 		generate_hex(${NAME})
-	endforeach()
-endif()
+	endif()
 
-
-if(NOT ${CMAKE_CROSSCOMPILING})
-	# Host program for USB device test: Run on host computer while USB device is connected
-	add_executable(RandomTestHost
-		RandomTestHost.cpp
-		libusb.hpp
-	)
-	target_include_directories(RandomTestHost
-		PRIVATE
-			..
-	)
-	target_link_libraries(RandomTestHost
-		coco::coco
-		coco-usb::coco-usb
-		libusb::libusb
-	)
-endif()
+	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}/RandomTestHost.hpp)
+		set(NAME "RandomTestHost-${BOARD}")
+		add_executable(${NAME}
+			RandomTestHost.cpp
+		)
+		target_include_directories(${NAME}
+			PRIVATE
+				../
+				${BOARD}
+		)
+		target_link_libraries(${NAME}
+			coco::coco
+			${COMPONENT}
+			coco-loop::coco-loop
+			coco-usb::coco-usb
+		)
+	endif()
+endforeach()

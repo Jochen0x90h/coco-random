@@ -26,10 +26,9 @@ class Project(ConanFile):
     generators = "CMakeDeps"
     exports_sources = "conanfile.py", "CMakeLists.txt", "coco/*", "test/*"
     requires = [
-        "coco/0.1.0",
-        "coco-devboards/0.1.0", # only for testing
-        "coco-loop/0.1.0",
-        "coco-usb/0.1.0" # only for testing
+        "coco-loop/0.3.0",
+        "coco-devboards/0.3.0", # only for testing
+        "coco-usb/0.3.0" # only for testing
     ]
 
 
@@ -42,8 +41,8 @@ class Project(ConanFile):
     def configure(self):
         # pass platform option to dependencies
         self.options["coco"].platform = self.options.platform
-        self.options["coco-devboards"].platform = self.options.platform
         self.options["coco-loop"].platform = self.options.platform
+        self.options["coco-devboards"].platform = self.options.platform
         self.options["coco-usb"].platform = self.options.platform
 
     keep_imports = True
@@ -55,6 +54,7 @@ class Project(ConanFile):
     def generate(self):
         # generate "conan_toolchain.cmake"
         toolchain = CMakeToolchain(self)
+        toolchain.variables["OS"] = self.settings.os
         toolchain.variables["PLATFORM"] = self.options.platform
 
         # cross compile to a platform if platform option is set
@@ -93,7 +93,7 @@ class Project(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.libs = ["coco-random"]
+        self.cpp_info.libs = [self.name]
 
     def deploy(self):
         # install if CONAN_INSTALL_PREFIX env variable is set
