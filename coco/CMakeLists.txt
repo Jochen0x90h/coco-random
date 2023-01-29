@@ -1,23 +1,25 @@
 add_library(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
 	PUBLIC FILE_SET headers TYPE HEADERS FILES
-		random.hpp
+		Random.hpp
 	PRIVATE
-		random.cpp
+		Random.cpp
 )
 
 if(${PLATFORM} STREQUAL "native")
 	# native platform (Windows, MacOS, Linux)
 	target_sources(${PROJECT_NAME}
-		#PUBLIC FILE_SET platform_headers TYPE HEADERS BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/native FILES
+		PUBLIC FILE_SET platform_headers TYPE HEADERS BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/native FILES
+			native/coco/platform/Random_random.hpp
 		PRIVATE
-			native/coco/platform/random.cpp
+			native/coco/platform/Random_random.cpp
 		)
 elseif(${PLATFORM} MATCHES "^nrf52")
 	target_sources(${PROJECT_NAME}
-		#PUBLIC FILE_SET platform_headers TYPE HEADERS BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/nrf52 FILES
+		PUBLIC FILE_SET platform_headers TYPE HEADERS BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/nrf52 FILES
+			nrf52/coco/platform/Random_RNG.hpp
 		PRIVATE
-			nrf52/coco/platform/random.cpp
+			nrf52/coco/platform/Random_RNG.cpp
 	)
 elseif(${PLATFORM} MATCHES "^stm32f0")
 
@@ -25,7 +27,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME}
 	coco::coco
-	coco-loop::coco-loop # for loop::now() in native
+	coco-loop::coco-loop
 )
 
 target_include_directories(${PROJECT_NAME}

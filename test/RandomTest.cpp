@@ -1,7 +1,7 @@
 #include <coco/loop.hpp>
 #include <coco/debug.hpp>
-#include <coco/board/UsbDevice.hpp>
 #include <coco/random.hpp>
+#include <RandomTest.hpp>
 
 
 using namespace coco;
@@ -26,14 +26,14 @@ static const usb::DeviceDescriptor deviceDescriptor = {
 
 // configuration descriptor
 struct UsbConfiguration {
-	struct usb::ConfigDescriptor config;
+	struct usb::ConfigurationDescriptor config;
 	struct usb::InterfaceDescriptor interface;
-	struct usb::EndpointDescriptor endpoints[1];
+	struct usb::EndpointDescriptor endpoints[2];
 };
 
 static const UsbConfiguration configurationDescriptor = {
 	.config = {
-		.bLength = sizeof(usb::ConfigDescriptor),
+		.bLength = sizeof(usb::ConfigurationDescriptor),
 		.bDescriptorType = usb::DescriptorType::CONFIGURATION,
 		.wTotalLength = sizeof(UsbConfiguration),
 		.bNumInterfaces = 1,
@@ -60,33 +60,102 @@ static const UsbConfiguration configurationDescriptor = {
 		.bmAttributes = usb::EndpointType::BULK,
 		.wMaxPacketSize = 64,
 		.bInterval = 1 // polling interval
+	},
+	{
+		.bLength = sizeof(usb::EndpointDescriptor),
+		.bDescriptorType = usb::DescriptorType::ENDPOINT,
+		.bEndpointAddress = 2 | usb::IN, // 2 in (device to host)
+		.bmAttributes = usb::EndpointType::BULK,
+		.wMaxPacketSize = 64,
+		.bInterval = 1 // polling interval
 	}}
 };
 
 
+// handle control requests
+Coroutine control(UsbDevice &device) {
+	while (true) {
+		usb::Setup setup;
 
-uint8_t sendData[16];// __attribute__((aligned(4)));
+		// wait for a control request (https://www.beyondlogic.org/usbnutshell/usb6.shtml)
+		co_await device.request(setup);
+
+		// handle request
+		switch (setup.requestType) {
+		case usb::RequestType::STANDARD_DEVICE_IN:
+			switch (setup.request) {
+			case usb::Request::GET_DESCRIPTOR:
+				{
+					auto descriptorType = usb::DescriptorType(setup.value >> 8);
+					//int descriptorIndex = setup.value & 0xff;
+					switch (descriptorType) {
+					case usb::DescriptorType::DEVICE:
+						//debug::set(debug::CYAN);
+						co_await device.controlIn(setup, &deviceDescriptor);
+						break;
+					case usb::DescriptorType::CONFIGURATION:
+						co_await device.controlIn(setup, &configurationDescriptor);
+						break;
+					//case usb::DescriptorType::STRING:
+					default:
+						device.stall();
+					}
+				}
+				break;	
+			default:
+				device.stall();
+			}			
+			break;
+		default:
+			device.stall();
+		}
+	}
+}
 
 // send random numbers to host
-Coroutine send(UsbDevice &usb) {
+Coroutine send(Random &random, UsbDevice &device, Stream &stream) {
 	while (true) {
-		// generate random numbers
-		for (int i = 0; i < std::ssize(sendData); ++i)
-			sendData[i] = random::u8();
-		
-		// send to host	
-		co_await usb.send(1, sendData, std::size(sendData));
+		// wait until device is connected
+		co_await device.targetState(UsbDevice::State::CONNECTED);
 
-		debug::toggleBlue();		
-		co_await loop::sleep(1s);
+		while (device.isConnected()) {
+			// generate random number
+			uint32_t value;
+			co_await random.draw(value);
+			debug::setBlue();
+			
+			// send to host	
+			co_await stream.write(&value, 4);
+
+			debug::toggleGreen();
+		}
+	}
+}
+
+// send random numbers to host
+Coroutine sendBlocking(Random &random, UsbDevice &device, Stream &stream) {
+	while (true) {
+		// wait until device is connected
+		co_await device.targetState(UsbDevice::State::CONNECTED);
+
+		while (device.isConnected()) {
+			// generate random number
+			uint32_t value = random.drawBlocking();
+			debug::setBlue();
+			
+			// send to host	
+			co_await stream.write(&value, 4);
+
+			debug::toggleGreen();
+		}
 	}
 }
 
 int main() {
-	loop::init();
 	debug::init();
-	random::init();
-	board::UsbDevice usb(
+	Drivers drivers;
+
+/*	board::UsbDevice usb(
 		[](usb::DescriptorType descriptorType) {
 			switch (descriptorType) {
 			case usb::DescriptorType::DEVICE:
@@ -97,16 +166,25 @@ int main() {
 				return ConstData();
 			}
 		},
-		[](UsbDevice &usb, uint8_t bConfigurationValue) {
+		[&drivers](UsbDevice &usb, uint8_t bConfigurationValue) {
 			// enable bulk endpoints in 1 (keep control endpoint 0 enabled)
-			usb.enableEndpoints(1 | (1 << 1), 1);
+			usb.enableEndpoints(1 | (1 << 1) | (1 << 2), 1);
 
 			// start to send random numbers to host
-			send(usb);
+			send(drivers.random, usb);
+			sendBlocking(drivers.random, usb);
 		},
 		[](uint8_t bRequest, uint16_t wValue, uint16_t wIndex) {
 			return false;
-		});
+		}
+	);*/
 
-	loop::run();
+	// handle control requests
+	control(drivers.device);
+
+	// start to send random numbers to host
+	send(drivers.random, drivers.device, drivers.endpoint1);
+	sendBlocking(drivers.random, drivers.device, drivers.endpoint2);
+
+	drivers.loop.run();
 }

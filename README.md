@@ -1,9 +1,9 @@
-# CoCo USB
+# CoCo Random
 
 Random number generator module for CoCo
 
 ## Import
-Add coco-random/<version> to your conanfile where version corresponds to the git tags
+Add coco-random/\<version> to your conanfile where version corresponds to the git tags
 
 ## Features
 * Uses hardware random generator when available
