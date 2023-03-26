@@ -7,13 +7,13 @@
 namespace coco {
 
 /**
- * Implementatoin of the Random interface using the hardware random number generator.
- * https://infocenter.nordicsemi.com/index.jsp?topic=%2Fps_nrf52840%2Frng.html&cp=4_0_0_5_20
- * 
- * Resources:
- *	NRF_RNG
- */
-class Random_RNG : public Random, public Handler {
+	Implementatoin of the Random interface using the hardware random number generator.
+	https://infocenter.nordicsemi.com/index.jsp?topic=%2Fps_nrf52840%2Frng.html&cp=4_0_0_5_20
+
+	Resources:
+		NRF_RNG
+*/
+class Random_RNG : public Random, public Loop_RTC0::Handler {
 public:
 
 	Random_RNG(Loop_RTC0 &loop);
@@ -30,7 +30,7 @@ protected:
 	uint32_t value;
 
 	// waiting coroutines
-	Waitlist<uint32_t *> waitlist;
+	TaskList<uint32_t *> tasks;
 };
 
 } // namespace coco

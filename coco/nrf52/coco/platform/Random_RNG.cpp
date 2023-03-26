@@ -17,11 +17,11 @@ Random_RNG::~Random_RNG() {
 }
 
 Awaitable<uint32_t *> Random_RNG::draw(uint32_t &value) {
-	if (this->waitlist.empty()) {
+	if (this->tasks.empty()) {
 		this->count = 0;
 		NRF_RNG->TASKS_START = TRIGGER;
 	}
-	return {this->waitlist, &value};
+	return {this->tasks, &value};
 }
 
 uint32_t Random_RNG::drawBlocking() {
@@ -33,11 +33,11 @@ uint32_t Random_RNG::drawBlocking() {
 		value <<= 8;
 		value |= NRF_RNG->VALUE;
 	}
-	
+
 	// stop random number generator if no waiting coroutines
-	if (this->waitlist.empty())
+	if (this->tasks.empty())
 		NRF_RNG->TASKS_STOP = TRIGGER;
-	
+
 	return value;
 }
 
@@ -56,13 +56,13 @@ void Random_RNG::handle() {
 			this->count = 0;
 
 			// resume first waiting coroutine
-			this->waitlist.resumeFirst([this](uint32_t *value) {
+			this->tasks.resumeFirst([this](uint32_t *value) {
 				*value = this->value;
 				return true;
 			});
 
 			// stop random number generator if no more waiting coroutines
-			if (this->waitlist.empty())
+			if (this->tasks.empty())
 				NRF_RNG->TASKS_STOP = TRIGGER;
 		}
 

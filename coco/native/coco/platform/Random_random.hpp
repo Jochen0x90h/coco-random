@@ -7,8 +7,8 @@
 namespace coco {
 
 /**
- * Implementatoin of the Random interface using c++ std::random_device
- */
+	Implementatoin of the Random interface using c++ std::random_device
+*/
 class Random_random : public Random {
 public:
 
