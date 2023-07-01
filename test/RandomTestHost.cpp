@@ -51,9 +51,10 @@ Coroutine handler(UsbHostDevice &device, Buffer &buffer, int endpoint) {
 		while (buffer.ready()) {
 			// receive from device
 			co_await buffer.read();
+			int transferred = buffer.transferred();
 
 			std::cout << endpoint << ": ";
-			for (int i = 0; i < buffer.size(); ++i) {
+			for (int i = 0; i < transferred; ++i) {
 				if (i > 0)
 					std::cout << ", ";
 				std::cout << hex(buffer[i])	;

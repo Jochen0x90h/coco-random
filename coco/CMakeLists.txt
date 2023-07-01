@@ -1,9 +1,10 @@
 add_library(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
-	PUBLIC FILE_SET headers TYPE HEADERS FILES
-		Random.hpp
+	#PUBLIC FILE_SET headers TYPE HEADERS FILES
+	#	Random.hpp
 	PRIVATE
-		Random.cpp
+		dummy.cpp
+		#Random.cpp
 )
 
 if(${PLATFORM} STREQUAL "native")
@@ -28,6 +29,7 @@ endif()
 target_link_libraries(${PROJECT_NAME}
 	coco::coco
 	coco-loop::coco-loop
+	coco-buffer::coco-buffer
 )
 
 target_include_directories(${PROJECT_NAME}

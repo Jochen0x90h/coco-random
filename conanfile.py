@@ -6,7 +6,6 @@ from conan.tools.cmake import CMake
 class Project(ConanFile):
     name = "coco-random"
     description = "Random generator module for CoCo"
-    url = "https://github.com/Jochen0x90h/coco-random"
     license = "MIT"
     settings = "os", "compiler", "build_type", "arch"
     options = {
@@ -16,7 +15,8 @@ class Project(ConanFile):
     generators = "CMakeDeps", "CMakeToolchain"
     exports_sources = "conanfile.py", "CMakeLists.txt", "coco/*", "test/*"
     requires = [
-        "coco-loop/main",
+        "coco-loop/0.4.0",
+        "coco-buffer/0.1.0"
     ]
     tool_requires = "coco-toolchain/0.1.0"
 
@@ -29,12 +29,13 @@ class Project(ConanFile):
 
     def build_requirements(self):
         self.test_requires("coco-devboards/0.4.0")
-        self.test_requires("coco-usb/main")
+        self.test_requires("coco-usb/0.4.1")
 
     def configure(self):
         # pass platform option to dependencies
         self.options["coco"].platform = self.options.platform
         self.options["coco-loop"].platform = self.options.platform
+        self.options["coco-buffer"].platform = self.options.platform
         self.options["coco-toolchain"].platform = self.options.platform
         self.options["coco-devboards"].platform = self.options.platform
         self.options["coco-usb"].platform = self.options.platform

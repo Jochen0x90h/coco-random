@@ -110,42 +110,22 @@ Coroutine control(UsbDevice &device, Buffer &buffer) {
 }
 
 // send random numbers to host
-Coroutine send(Random &random, Buffer &buffer) {
+Coroutine generate(Loop &loop, Buffer &random, Buffer &usb) {
 	while (true) {
 		// wait until buffer is ready (device is connected)
-		co_await buffer.untilReady();
+		co_await usb.untilReady();
 
-		while (buffer.ready()) {
+		while (usb.ready()) {
 			// generate random number
-			uint32_t value;
-			co_await random.draw(value);
-			debug::setBlue();
+			co_await random.read(4);
+			debug::toggleBlue();
 
 			// send to host
-			buffer.set(reinterpret_cast<const uint8_t *>(&value), 4);
-			co_await buffer.write();
+			co_await usb.writeData(random.data(), random.transferred());
 
 			debug::toggleGreen();
-		}
-	}
-}
 
-// send random numbers to host
-Coroutine sendBlocking(Random &random, Buffer &buffer) {
-	while (true) {
-		// wait until buffer is ready (device is connected)
-		co_await buffer.untilReady();
-
-		while (buffer.ready()) {
-			// generate random number
-			uint32_t value = random.drawBlocking();
-			debug::setBlue();
-
-			// send to host
-			buffer.set(reinterpret_cast<const uint8_t *>(&value), 4);
-			co_await buffer.write();
-
-			debug::toggleGreen();
+			co_await loop.sleep(100ms);
 		}
 	}
 }
@@ -158,8 +138,7 @@ int main() {
 	control(drivers.device, drivers.controlBuffer);
 
 	// start to send random numbers to host
-	send(drivers.random, drivers.buffer1);
-	sendBlocking(drivers.random, drivers.buffer2);
+	generate(drivers.loop, drivers.random, drivers.usb1);
 
 	drivers.loop.run();
 }

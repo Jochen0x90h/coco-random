@@ -1,27 +1,32 @@
 #pragma once
 
-#include <coco/Random.hpp>
+#include <coco/BufferImpl.hpp>
 #include <random>
 
 
 namespace coco {
 
 /**
-	Implementatoin of the Random interface using c++ std::random_device
+	Blocking implementation of the Random interface using std::random_device.
+	Use only for obtaining a seed for a pseudo random number generator.
 */
-class Random_random : public Random {
-public:
+namespace Random_random {
 
-	Random_random() {}
-	~Random_random() override;
+	class Buffer : public BufferImpl {
+	public:
 
-	[[nodiscard]] Awaitable<uint32_t *> draw(uint32_t &value) override;
-	[[nodiscard]] uint32_t drawBlocking() override;
+		Buffer(int size);
+		~Buffer() override;
 
-protected:
+		bool startInternal(int size, Op op) override;
+		void cancel() override;
 
-	// random device (e.g. dev/random)
-	std::random_device device;
-};
+	protected:
+
+		// random device (on linux probably based on /dev/random)
+		std::random_device device;
+	};
+
+}
 
 } // namespace coco

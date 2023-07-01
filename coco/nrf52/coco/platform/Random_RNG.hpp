@@ -1,36 +1,45 @@
 #pragma once
 
-#include <coco/Random.hpp>
-#include <coco/platform/Loop_RTC0.hpp>
+#include <coco/BufferImpl.hpp>
 
 
 namespace coco {
 
 /**
-	Implementatoin of the Random interface using the hardware random number generator.
-	https://infocenter.nordicsemi.com/index.jsp?topic=%2Fps_nrf52840%2Frng.html&cp=4_0_0_5_20
+	Blocking implementation of the Random interface using the hardware random number generator.
+	Use only for obtaining a seed for a pseudo random number generator.
+
+	Reference Manual:
+		https://infocenter.nordicsemi.com/topic/ps_nrf52840/rng.html?cp=5_0_0_5_20
 
 	Resources:
 		NRF_RNG
 */
-class Random_RNG : public Random, public Loop_RTC0::Handler {
-public:
+namespace Random_RNG {
 
-	Random_RNG(Loop_RTC0 &loop);
-	~Random_RNG() override;
+	class BufferBase : public BufferImpl {
+	public:
+		/**
+			Constructor
+		*/
+		BufferBase(uint8_t *data, int capacity) : BufferImpl(data, capacity, Buffer::State::READY) {}
 
-	[[nodiscard]] Awaitable<uint32_t *> draw(uint32_t &value) override;
-	[[nodiscard]] uint32_t drawBlocking() override;
+		bool startInternal(int size, Op op) override;
+		void cancel() override;
+	};
 
-protected:
+	/**
+		Buffer for reading from the random number generator.
+		@tparam N size of buffer
+	*/
+	template <int N>
+	class Buffer : public BufferBase {
+	public:
+		Buffer() : BufferBase(data, N) {}
 
-	void handle() override;
-
-	int count;
-	uint32_t value;
-
-	// waiting coroutines
-	TaskList<uint32_t *> tasks;
-};
+	protected:
+		alignas(4) uint8_t data[N];
+	};
+}
 
 } // namespace coco

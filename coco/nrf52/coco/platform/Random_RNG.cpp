@@ -6,67 +6,26 @@
 
 namespace coco {
 
-Random_RNG::Random_RNG(Loop_RTC0 &loop) {
-	NRF_RNG->INTENSET = N(RNG_INTENSET_VALRDY, Enabled);
+bool Random_RNG::BufferBase::startInternal(int size, Op op) {
+	// check if READ flag is set
+	assert((op & Op::READ) != 0);
 
-	// add to list of handlers
-	loop.handlers.add(*this);
-}
-
-Random_RNG::~Random_RNG() {
-}
-
-Awaitable<uint32_t *> Random_RNG::draw(uint32_t &value) {
-	if (this->tasks.empty()) {
-		this->count = 0;
-		NRF_RNG->TASKS_START = TRIGGER;
-	}
-	return {this->tasks, &value};
-}
-
-uint32_t Random_RNG::drawBlocking() {
-	uint32_t value = 0;
 	NRF_RNG->TASKS_START = TRIGGER;
-	for (int i = 0; i < 4; ++i) {
+
+	auto data = this->dat;
+	for (int i = 0; i < size; ++i) {
 		while (!NRF_RNG->EVENTS_VALRDY);
 		NRF_RNG->EVENTS_VALRDY = 0;
-		value <<= 8;
-		value |= NRF_RNG->VALUE;
+		data[i] = NRF_RNG->VALUE;
 	}
 
-	// stop random number generator if no waiting coroutines
-	if (this->tasks.empty())
-		NRF_RNG->TASKS_STOP = TRIGGER;
+	NRF_RNG->TASKS_STOP = TRIGGER;
 
-	return value;
+	setReady(size);
+	return true;
 }
 
-void Random_RNG::handle() {
-	if (NRF_RNG->EVENTS_VALRDY) {
-		// clear pending interrupt flag at peripheral and NVIC
-		NRF_RNG->EVENTS_VALRDY = 0;
-		clearInterrupt(RNG_IRQn);
-
-		// get new value
-		this->value <<= 8;
-		this->value |= NRF_RNG->VALUE;
-
-		++this->count;
-		if (this->count >= 4) {
-			this->count = 0;
-
-			// resume first waiting coroutine
-			this->tasks.resumeFirst([this](uint32_t *value) {
-				*value = this->value;
-				return true;
-			});
-
-			// stop random number generator if no more waiting coroutines
-			if (this->tasks.empty())
-				NRF_RNG->TASKS_STOP = TRIGGER;
-		}
-
-	}
+void Random_RNG::BufferBase::cancel() {
 }
 
 } // namespace coco
