@@ -1,5 +1,3 @@
-#include <coco/loop.hpp>
-#include <coco/Buffer.hpp>
 #include <coco/String.hpp>
 #include <RandomTestHost.hpp>
 #include <iostream>
@@ -43,24 +41,23 @@ std::ostream &operator <<(std::ostream &s, hex h) {
 	return s << std::setfill('0') << std::setw(h.w) << std::hex << h.v;
 }
 
-Coroutine handler(UsbHostDevice &device, Stream &stream, int endpoint) {
-	Buffer<uint8_t, 32> buffer;
-
+Coroutine handler(UsbHostDevice &device, Buffer &buffer, int endpoint) {
 	while (true) {
 		// wait until device is connected
 		std::cout << "wait for device to be connected" << std::endl;
-		co_await device.targetState(UsbHostDevice::State::CONNECTED);
+		co_await buffer.untilReady();
 
 		std::cout << "read random data" << std::endl;
-		while (device.isConnected()) {
+		while (buffer.ready()) {
 			// receive from device
-			co_await stream.read(buffer);
+			co_await buffer.read();
+			int transferred = buffer.transferred();
 
 			std::cout << endpoint << ": ";
-			for (int i = 0; i < buffer.size(); ++i) {
+			for (int i = 0; i < transferred; ++i) {
 				if (i > 0)
 					std::cout << ", ";
-				std::cout << hex(buffer[i])	;			
+				std::cout << hex(buffer[i])	;
 			}
 			std::cout << std::endl;
 		}
@@ -70,8 +67,8 @@ Coroutine handler(UsbHostDevice &device, Stream &stream, int endpoint) {
 int main() {
 	Drivers drivers;
 
-	handler(drivers.device, drivers.endpoint1, 1);
-	handler(drivers.device, drivers.endpoint2, 2);
+	handler(drivers.device, drivers.buffer1, 1);
+	handler(drivers.device, drivers.buffer2, 2);
 
 	drivers.loop.run();
 

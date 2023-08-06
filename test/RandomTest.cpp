@@ -1,6 +1,4 @@
-#include <coco/loop.hpp>
 #include <coco/debug.hpp>
-#include <coco/random.hpp>
 #include <RandomTest.hpp>
 
 
@@ -73,7 +71,7 @@ static const UsbConfiguration configurationDescriptor = {
 
 
 // handle control requests
-Coroutine control(UsbDevice &device) {
+Coroutine control(UsbDevice &device, Buffer &buffer) {
 	while (true) {
 		usb::Setup setup;
 
@@ -90,21 +88,20 @@ Coroutine control(UsbDevice &device) {
 					//int descriptorIndex = setup.value & 0xff;
 					switch (descriptorType) {
 					case usb::DescriptorType::DEVICE:
-						//debug::set(debug::CYAN);
-						co_await device.controlIn(setup, &deviceDescriptor);
+						co_await UsbDevice::controlIn(buffer, setup, deviceDescriptor);
 						break;
 					case usb::DescriptorType::CONFIGURATION:
-						co_await device.controlIn(setup, &configurationDescriptor);
+						co_await UsbDevice::controlIn(buffer, setup, configurationDescriptor);
 						break;
 					//case usb::DescriptorType::STRING:
 					default:
 						device.stall();
 					}
 				}
-				break;	
+				break;
 			default:
 				device.stall();
-			}			
+			}
 			break;
 		default:
 			device.stall();
@@ -113,40 +110,22 @@ Coroutine control(UsbDevice &device) {
 }
 
 // send random numbers to host
-Coroutine send(Random &random, UsbDevice &device, Stream &stream) {
+Coroutine generate(Loop &loop, Buffer &random, Buffer &usb) {
 	while (true) {
-		// wait until device is connected
-		co_await device.targetState(UsbDevice::State::CONNECTED);
+		// wait until buffer is ready (device is connected)
+		co_await usb.untilReady();
 
-		while (device.isConnected()) {
+		while (usb.ready()) {
 			// generate random number
-			uint32_t value;
-			co_await random.draw(value);
-			debug::setBlue();
-			
-			// send to host	
-			co_await stream.write(&value, 4);
+			co_await random.read(4);
+			debug::toggleBlue();
+
+			// send to host
+			co_await usb.writeData(random.data(), random.transferred());
 
 			debug::toggleGreen();
-		}
-	}
-}
 
-// send random numbers to host
-Coroutine sendBlocking(Random &random, UsbDevice &device, Stream &stream) {
-	while (true) {
-		// wait until device is connected
-		co_await device.targetState(UsbDevice::State::CONNECTED);
-
-		while (device.isConnected()) {
-			// generate random number
-			uint32_t value = random.drawBlocking();
-			debug::setBlue();
-			
-			// send to host	
-			co_await stream.write(&value, 4);
-
-			debug::toggleGreen();
+			co_await loop.sleep(100ms);
 		}
 	}
 }
@@ -155,36 +134,11 @@ int main() {
 	debug::init();
 	Drivers drivers;
 
-/*	board::UsbDevice usb(
-		[](usb::DescriptorType descriptorType) {
-			switch (descriptorType) {
-			case usb::DescriptorType::DEVICE:
-				return ConstData(&deviceDescriptor);
-			case usb::DescriptorType::CONFIGURATION:
-				return ConstData(&configurationDescriptor);
-			default:
-				return ConstData();
-			}
-		},
-		[&drivers](UsbDevice &usb, uint8_t bConfigurationValue) {
-			// enable bulk endpoints in 1 (keep control endpoint 0 enabled)
-			usb.enableEndpoints(1 | (1 << 1) | (1 << 2), 1);
-
-			// start to send random numbers to host
-			send(drivers.random, usb);
-			sendBlocking(drivers.random, usb);
-		},
-		[](uint8_t bRequest, uint16_t wValue, uint16_t wIndex) {
-			return false;
-		}
-	);*/
-
 	// handle control requests
-	control(drivers.device);
+	control(drivers.device, drivers.controlBuffer);
 
 	// start to send random numbers to host
-	send(drivers.random, drivers.device, drivers.endpoint1);
-	sendBlocking(drivers.random, drivers.device, drivers.endpoint2);
+	generate(drivers.loop, drivers.random, drivers.usb1);
 
 	drivers.loop.run();
 }

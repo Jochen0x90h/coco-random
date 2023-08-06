@@ -6,14 +6,11 @@
 namespace coco {
 
 /**
-	Blocking implementation of a random number generator using the hardware random number generator.
+	Blocking implementation of a random number generator using the temperature sensor connected to the ADC.
 	Recommended is to only obtain a seed for a pseudo random number generator.
 
-	Reference Manual:
-		https://infocenter.nordicsemi.com/topic/ps_nrf52840/rng.html?cp=5_0_0_5_20
-
 	Resources:
-		NRF_RNG
+		ADC
 */
 namespace Random_RNG {
 
