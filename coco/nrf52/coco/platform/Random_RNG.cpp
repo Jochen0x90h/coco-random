@@ -1,7 +1,7 @@
 #include "Random_RNG.hpp"
 #include <coco/platform/platform.hpp>
-#include <array>
-#include <cstdint>
+//#include <array>
+//#include <cstdint>
 
 
 namespace coco {

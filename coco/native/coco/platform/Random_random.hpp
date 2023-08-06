@@ -7,8 +7,8 @@
 namespace coco {
 
 /**
-	Blocking implementation of the Random interface using std::random_device.
-	Use only for obtaining a seed for a pseudo random number generator.
+	Blocking implementation of a random number generator using std::random_device.
+	Recommended is to only obtain a seed for a pseudo random number generator.
 */
 namespace Random_random {
 
@@ -26,7 +26,6 @@ namespace Random_random {
 		// random device (on linux probably based on /dev/random)
 		std::random_device device;
 	};
-
 }
 
 } // namespace coco
