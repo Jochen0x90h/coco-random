@@ -1,7 +1,7 @@
 add_library(${PROJECT_NAME})
 #target_sources(${PROJECT_NAME}
-	#PUBLIC FILE_SET headers TYPE HEADERS FILES
-	#PRIVATE
+#	PUBLIC FILE_SET headers TYPE HEADERS FILES
+#	PRIVATE
 #)
 
 if(${PLATFORM} STREQUAL "native" OR ${PLATFORM} STREQUAL "emu")
@@ -19,7 +19,7 @@ elseif(${PLATFORM} MATCHES "^nrf52")
 		PRIVATE
 			nrf52/coco/platform/Random_RNG.cpp
 	)
-elseif(${PLATFORM} MATCHES "^stm32f0")
+elseif(${PLATFORM} MATCHES "^stm32f0" OR ${PLATFORM} MATCHES "^stm32g4")
 	target_sources(${PROJECT_NAME}
 		PUBLIC FILE_SET platform_headers TYPE HEADERS BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/stm32f0 FILES
 			stm32f0/coco/platform/Random_ADC.hpp

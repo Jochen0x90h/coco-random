@@ -1,4 +1,5 @@
 #include "Random_random.hpp"
+#include <coco/align.hpp>
 
 
 namespace coco {
