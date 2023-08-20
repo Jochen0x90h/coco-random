@@ -41,10 +41,10 @@ std::ostream &operator <<(std::ostream &s, hex h) {
 	return s << std::setfill('0') << std::setw(h.w) << std::hex << h.v;
 }
 
-Coroutine handler(UsbHostDevice &device, Buffer &buffer, int endpoint) {
+Coroutine handler(Buffer &buffer, int endpoint) {
 	while (true) {
-		// wait until device is connected
-		std::cout << "wait for device to be connected" << std::endl;
+		// wait until USB device gets detected (buffer becomes ready)
+		std::cout << "Wait for USB device...";
 		co_await buffer.untilReady();
 
 		std::cout << "read random data" << std::endl;
@@ -67,8 +67,8 @@ Coroutine handler(UsbHostDevice &device, Buffer &buffer, int endpoint) {
 int main() {
 	Drivers drivers;
 
-	handler(drivers.device, drivers.buffer1, 1);
-	handler(drivers.device, drivers.buffer2, 2);
+	handler(drivers.buffer1, 1);
+	handler(drivers.buffer2, 2);
 
 	drivers.loop.run();
 
