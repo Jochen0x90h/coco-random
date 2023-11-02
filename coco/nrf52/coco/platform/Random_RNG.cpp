@@ -6,13 +6,14 @@
 
 namespace coco {
 
-bool Random_RNG::BufferBase::startInternal(int size, Op op) {
+bool Random_RNG::BufferBase::start(Op op) {
 	// check if READ flag is set
 	assert((op & Op::READ) != 0);
 
 	NRF_RNG->TASKS_START = TRIGGER;
 
-	auto data = this->dat;
+	auto data = this->p.data;
+	int size = this->p.size;
 	for (int i = 0; i < size; ++i) {
 		while (!NRF_RNG->EVENTS_VALRDY);
 		NRF_RNG->EVENTS_VALRDY = 0;
@@ -21,11 +22,12 @@ bool Random_RNG::BufferBase::startInternal(int size, Op op) {
 
 	NRF_RNG->TASKS_STOP = TRIGGER;
 
-	setReady(size);
+	setReady();
 	return true;
 }
 
-void Random_RNG::BufferBase::cancel() {
+bool Random_RNG::BufferBase::cancel() {
+	return true;
 }
 
 } // namespace coco

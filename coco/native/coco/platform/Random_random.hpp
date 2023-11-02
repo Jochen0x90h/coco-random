@@ -18,8 +18,8 @@ namespace Random_random {
 		Buffer(int size);
 		~Buffer() override;
 
-		bool startInternal(int size, Op op) override;
-		void cancel() override;
+		bool start(Op op) override;
+		bool cancel() override;
 
 	protected:
 

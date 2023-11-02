@@ -50,8 +50,8 @@ Coroutine handler(Buffer &buffer, int endpoint) {
 		std::cout << "read random data" << std::endl;
 		while (buffer.ready()) {
 			// receive from device
-			co_await buffer.read();
-			int transferred = buffer.transferred();
+			co_await buffer.read(buffer.capacity());
+			int transferred = buffer.size();
 
 			std::cout << endpoint << ": ";
 			for (int i = 0; i < transferred; ++i) {

@@ -121,7 +121,7 @@ Coroutine generate(Loop &loop, Buffer &random, Buffer &usb) {
 			debug::toggleBlue();
 
 			// send to host
-			co_await usb.writeData(random.data(), random.transferred());
+			co_await usb.writeData(random);
 
 			debug::toggleGreen();
 

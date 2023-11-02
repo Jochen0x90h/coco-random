@@ -22,10 +22,10 @@ namespace Random_RNG {
 		/**
 			Constructor
 		*/
-		BufferBase(uint8_t *data, int capacity) : BufferImpl(data, capacity, Buffer::State::READY) {}
+		BufferBase(uint8_t *data, int capacity) : BufferImpl(0, data, capacity, Buffer::State::READY) {}
 
-		bool startInternal(int size, Op op) override;
-		void cancel() override;
+		bool start(Op op) override;
+		bool cancel() override;
 	};
 
 	/**

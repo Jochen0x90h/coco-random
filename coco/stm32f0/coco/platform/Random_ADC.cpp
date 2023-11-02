@@ -4,18 +4,19 @@
 
 namespace coco {
 
-bool Random_RNG::BufferBase::startInternal(int size, Op op) {
+bool Random_RNG::BufferBase::start(Op op) {
 	// check if READ flag is set
 	assert((op & Op::READ) != 0);
 
 	// todo
 	// see https://www.mikrocontroller.net/topic/358453
 
-	setReady(size);
+	setReady();
 	return true;
 }
 
-void Random_RNG::BufferBase::cancel() {
+bool Random_RNG::BufferBase::cancel() {
+	return true;
 }
 
 } // namespace coco
