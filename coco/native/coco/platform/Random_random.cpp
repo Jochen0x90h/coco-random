@@ -5,7 +5,7 @@
 namespace coco {
 
 Random_random::Buffer::Buffer(int size)
-	: BufferImpl(0, new uint8_t[align4(size)], size, State::READY)
+	: BufferImpl(new uint8_t[align4(size)], size, State::READY)
 {
 }
 
