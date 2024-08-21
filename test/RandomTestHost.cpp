@@ -65,8 +65,6 @@ Coroutine handler(Buffer &buffer, int endpoint) {
 }
 
 int main() {
-	Drivers drivers;
-
 	handler(drivers.buffer1, 1);
 	handler(drivers.buffer2, 2);
 

@@ -14,8 +14,10 @@ struct Drivers {
 		return deviceDescriptor.idVendor == 0x1915 && deviceDescriptor.idProduct == 0x1337;
 	}};
 	UsbHost_native::ControlBuffer controlBuffer{32, device};
-	UsbHost_native::BulkEndpoint endpoint1{device, 1};
-	UsbHost_native::BulkEndpoint endpoint2{device, 2};
-	UsbHost_native::BulkBuffer buffer1{129, endpoint1};
-	UsbHost_native::BulkBuffer buffer2{129, endpoint2};
+	UsbHost_native::Endpoint endpoint1{device, 1};
+	UsbHost_native::Endpoint endpoint2{device, 2};
+	UsbHost_native::Buffer buffer1{129, endpoint1};
+	UsbHost_native::Buffer buffer2{129, endpoint2};
 };
+
+Drivers drivers;

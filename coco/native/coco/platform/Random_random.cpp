@@ -1,34 +1,26 @@
 #include "Random_random.hpp"
-#include <coco/align.hpp>
 
 
 namespace coco {
 
-Random_random::Buffer::Buffer(int size)
-	: BufferImpl(new uint8_t[align4(size)], size, State::READY)
-{
+Random_random::~Random_random() {
 }
 
-Random_random::Buffer::~Buffer() {
-	delete [] this->p.data;
-}
+void Random_random::draw(void *data, int size) {
+	uint32_t r;
+	int x = 0;
+	uint8_t *dst = reinterpret_cast<uint8_t *>(data);
+	for (int i = 0; i < size; ++i) {
+		if (x == 0) {
+			// draw 32bit random number
+			r = this->device();
+			x = 4;
+		}
 
-bool Random_random::Buffer::start(Op op) {
-	// check if READ flag is set
-	assert((op & Op::READ) != 0);
-
-	int n = (this->p.size + 3) / 4;
-	auto data = reinterpret_cast<uint32_t *>(this->p.data);
-	for (int i = 0; i < n; ++i) {
-		data[i] = this->device();
+		dst[i] = r;
+		r >>= 8;
+		--x;
 	}
-
-	setReady();
-	return true;
-}
-
-bool Random_random::Buffer::cancel() {
-	return true;
 }
 
 } // namespace coco

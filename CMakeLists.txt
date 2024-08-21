@@ -27,7 +27,6 @@ message("*** Platform: ${PLATFORM}")
 
 # dependencies
 find_package(coco CONFIG)
-find_package(coco-buffer CONFIG)
 find_package(coco-devboards CONFIG)
 find_package(coco-loop CONFIG)
 find_package(coco-usb CONFIG)
