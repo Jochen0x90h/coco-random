@@ -23,12 +23,13 @@ class Project(ConanFile):
         return False
 
     def requirements(self):
-        self.requires("coco-loop/pow10", options={"platform": self.options.platform})
+        pass
 
     def build_requirements(self):
-        self.tool_requires("coco-toolchain/pow10", options={"platform": self.options.platform})
-        self.test_requires("coco-devboards/pow10", options={"platform": self.options.platform})
-        self.test_requires("coco-usb/pow10", options={"platform": self.options.platform})
+        self.tool_requires("coco-toolchain/0.3.0", options={"platform": self.options.platform})
+        self.test_requires("coco-devboards/0.6.0", options={"platform": self.options.platform})
+        self.test_requires("coco-loop/0.6.0", options={"platform": self.options.platform})
+        self.test_requires("coco-usb/0.6.0", options={"platform": self.options.platform})
 
     keep_imports = True
     def imports(self):
