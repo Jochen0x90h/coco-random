@@ -1,8 +1,9 @@
 add_library(${PROJECT_NAME})
-#target_sources(${PROJECT_NAME}
-#	PUBLIC FILE_SET headers TYPE HEADERS FILES
+target_sources(${PROJECT_NAME}
+	PUBLIC FILE_SET headers TYPE HEADERS FILES
+		Random.hpp
 #	PRIVATE
-#)
+)
 
 if(${PLATFORM} STREQUAL "native" OR ${PLATFORM} STREQUAL "emu")
 	# native platform (Windows, MacOS, Linux)
@@ -19,19 +20,18 @@ elseif(${PLATFORM} MATCHES "^nrf52")
 		PRIVATE
 			nrf52/coco/platform/Random_RNG.cpp
 	)
-elseif(${PLATFORM} MATCHES "^stm32f0" OR ${PLATFORM} MATCHES "^stm32g4")
+elseif(${PLATFORM} MATCHES "^stm32")
 	target_sources(${PROJECT_NAME}
-		PUBLIC FILE_SET platform_headers TYPE HEADERS BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/stm32f0 FILES
-			stm32f0/coco/platform/Random_ADC.hpp
+		PUBLIC FILE_SET platform_headers TYPE HEADERS BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/stm32 FILES
+			stm32/coco/platform/Random_UID.hpp
 		PRIVATE
-			stm32f0/coco/platform/Random_ADC.cpp
+			stm32/coco/platform/Random_UID.cpp
 	)
 endif()
 
 target_link_libraries(${PROJECT_NAME}
 	coco::coco
 	coco-loop::coco-loop
-	coco-buffer::coco-buffer
 )
 
 target_include_directories(${PROJECT_NAME}
