@@ -11,3 +11,4 @@ Add coco-random/\<version> to your conanfile where version corresponds to the gi
 ## Supported Platforms
 * Native
 * nRF52
+* STM32

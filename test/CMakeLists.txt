@@ -18,7 +18,7 @@ function(board_test TEST BOARD_LIB)
 		)
 		target_link_libraries(${NAME}
 			${BOARD_LIB}
-			coco-usb::coco-usb
+			#coco-usb::coco-usb
 			${PROJECT_NAME}
 		)
 
@@ -34,8 +34,8 @@ function(board_test TEST BOARD_LIB)
 endfunction()
 
 board_test(RandomTest coco-devboards::native)
-
-board_test(RandomTestDevice coco-devboards::native)
-board_test(RandomTestDevice coco-devboards::nrf52dongle)
-
-board_test(RandomTestHost coco-devboards::native)
+board_test(RandomTest coco-devboards::nrf52dongle)
+board_test(RandomTest coco-devboards::nucleo-g431rb)
+board_test(RandomTest coco-devboards::nucleo-g491re)
+board_test(RandomTest coco-devboards::nucleo-h503rb)
+board_test(RandomTest coco-devboards::nucleo-u385rg-q)
