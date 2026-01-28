@@ -29,7 +29,6 @@ class Project(ConanFile):
         self.tool_requires("coco-toolchain/towards1", options={"platform": self.options.platform})
         self.test_requires("coco-devboards/towards1", options={"platform": self.options.platform})
         self.test_requires("coco-loop/towards1", options={"platform": self.options.platform})
-        #self.test_requires("coco-usb/0.6.0", options={"platform": self.options.platform})
 
     keep_imports = True
     def imports(self):
