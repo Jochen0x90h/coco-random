@@ -2,7 +2,7 @@
 #include <coco/debug.hpp>
 
 
-#ifdef HAVE_RNG
+#if defined(HAVE_RNG) || defined(NRF_RNG)
 namespace coco {
 
 Random32_rng::Random32_rng() {

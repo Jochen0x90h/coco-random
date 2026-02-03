@@ -6,7 +6,7 @@
 #endif
 
 
-#ifdef HAVE_RNG
+#if defined(HAVE_RNG) || defined(NRF_RNG)
 namespace coco {
 
 /// @brief Implementation of the Random interface for 32 bit random numbers using the hardware random number generator HAL.
