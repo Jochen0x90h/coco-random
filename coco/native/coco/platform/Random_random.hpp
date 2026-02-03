@@ -6,18 +6,17 @@
 
 namespace coco {
 
-/**
-	Blocking implementation of a random number generator using std::random_device.
-*/
+/// @brief Implementation of random number generator interface using std::random_device.
+///
 class Random_random : public Random {
 public:
-	~Random_random() override;
+    ~Random_random() override;
 
-	void draw(void *data, int size) override;
+    uint32_t get() override;
 
 protected:
-	// random device (on linux probably based on /dev/random)
-	std::random_device device;
+    // random device (on linux probably based on /dev/random)
+    std::random_device device_;
 };
 
 } // namespace coco

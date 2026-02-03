@@ -1,34 +1,33 @@
 #include <RandomTest.hpp>
+#include <coco/convert.hpp>
 #include <coco/debug.hpp>
-#include <coco/StreamOperators.hpp>
 
 
 /*
-	Random test
+    Random number generator test
+    Prints random numbers to debug::out
 */
 
 using namespace coco;
 
 
-// send random numbers to host
+// generate random numbers
 Coroutine generate(Loop &loop, Random &random) {
-	while (true) {
-		// generate random number
-		uint8_t numbers[4];
-		random.draw(numbers, 4);
+    while (true) {
+        // generate random number
+        uint32_t value = random.get();
 
-		// print random numbers
-		for (auto number : numbers)
-			debug::out << dec(number) << ' ';
-		debug::out << '\n';
+        debug::out << hex(value) << '\n';
 
-		co_await loop.sleep(100ms);
-	}
+        co_await loop.sleep(100ms);
+    }
 }
 
 int main() {
-	// start to send random numbers to host
-	generate(drivers.loop, drivers.random);
+    debug::set(debug::GREEN);
+    debug::out << "RandomTest\n";
 
-	drivers.loop.run();
+    generate(drivers.loop, drivers.random);
+
+    drivers.loop.run();
 }
